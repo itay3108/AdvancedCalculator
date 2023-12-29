@@ -5,5 +5,8 @@ def print_hi(name):
 
 
 if __name__ == '__main__':
-    print_hi('PyCharm')
-
+    operand = 0
+    result = 1
+    for i in range(2, operand + 1):
+        result *= i
+    print(result)
