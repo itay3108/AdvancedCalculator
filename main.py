@@ -1,12 +1,10 @@
-
-
-def print_hi(name):
-    print(f'Hi, {name}')  # Press ⌘F8 to toggle the breakpoint.
+from inputHandeling import validateInput
 
 
 if __name__ == '__main__':
-    operand = 0
-    result = 1
-    for i in range(2, operand + 1):
-        result *= i
-    print(result)
+    try:
+        string = "2+--3!"
+
+        print(validateInput.validate_input(string))
+    except SyntaxError and ArithmeticError as e:
+        print(e)
