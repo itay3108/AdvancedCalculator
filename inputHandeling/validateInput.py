@@ -23,6 +23,27 @@ def tryNumConversion(num: str):
         return False
 
 
+def closeExp(dividedExp: list, index: int):
+    """
+    Closing an open expression duo to a '-' conversion
+    :param dividedExp: The expression needed to be closed
+    :param index: The position of the start of the expression
+    :return: Update the expression accordingly
+    """
+    openedExp = 1
+    j = index + 1
+    placeToAddFound = False
+    while not placeToAddFound and j < len(dividedExp) - 1:
+        if dividedExp[j] == '(':
+            openedExp += 1
+        elif dividedExp[j] == ')':
+            openedExp -= 1
+            if openedExp == 0:
+                placeToAddFound = True
+        j += 1
+    dividedExp[j-1:j] = [dividedExp[j-1], ')']
+
+
 def isFloat(num):
     """
     Checks if a num is a float.
@@ -100,15 +121,12 @@ def checkBinaryOp(dividedExp: list, index: int):
             notValid = True
         else:
             after = dividedExp[index + 1]
-            if after != '-' and after != '(' and not tryNumConversion(after) and not (
-                    after in opDictionary and opDictionary[after].getPosition() == -1):
+            if after != '-' and after != '(' and not tryNumConversion(after) and after in opDictionary:
                 raise SyntaxError("Syntax Error: '-' operator must be followed by a number or closing parenthesis or "
                                   "another '-' operator")
     elif 0 < index < len(dividedExp) - 1:
         before = dividedExp[index - 1]
         after = dividedExp[index + 1]
-        print(before)
-        print(after, "\n")
         if (after != '(' and not tryNumConversion(after) and after != '-' and not (
                 after in opDictionary and opDictionary[after].getPosition() == -1)):
             notValid = True
@@ -122,37 +140,49 @@ def checkBinaryOp(dividedExp: list, index: int):
                           f"unary operands or a closing parenthesis before and an opening one after.")
 
 
-def convertMinusesInExp(dividedExp: list):
+def convertMinusesInExp(dividedExp: list) -> list:
     """
     Converting all the unary minuses to 0 - the operand/expression and maintaining the priority of the expression.
     :param dividedExp: The expression that may need the conversion.
     :return: The divided expression changed if needed.
     """
+    nonBinaryMinus = False
     i = 0
     while i < len(dividedExp):
         if dividedExp[i] == '-':
-            if 0 < i < len(dividedExp) - 1:
-                after = dividedExp[i + 1]
-                if after == '(':
-                    openedExp = 1
-                    j = i + 1
-                    while openedExp > 0:
-                        if dividedExp[j] == '(':
-                            openedExp += 1
-                        elif dividedExp[j] == ')':
-                            openedExp -= 1
-                        j += 1
-                    dividedExp[j:j + 1] = [dividedExp[j], ')']
-                else:
-                    dividedExp[i + 1:i + 2] = [dividedExp[i + 1], ')']
+            if 0 < i < len(dividedExp)-1:
                 before = dividedExp[i - 1]
+
                 if before in opDictionary and opDictionary[before].getPosition() != 1:
                     dividedExp[i:i + 1] = ['(', 0, '-']
-                    i += 3
-                else:
-                    raise SyntaxError("Syntax error: The operator '-' has no operand after it.")
+                    nonBinaryMinus = True
+                    i += 2
+
+                elif before == '(':
+                    dividedExp[i:i + 1] = [0, '-']
+                    i += 1
+                after = dividedExp[i + 1]
+
+                if nonBinaryMinus:
+                    parenthesisAdded = False
+                    j = i+1
+                    while not parenthesisAdded and j < len(dividedExp):
+                        if dividedExp[j] == '(':
+                            closeExp(dividedExp, j)
+                            parenthesisAdded = True
+                            j += 1
+                        elif tryNumConversion(dividedExp[j]):
+                            dividedExp[j:j+1] = [dividedExp[j], ')']
+                            parenthesisAdded = True
+                        j += 1
+                    nonBinaryMinus = False
+                elif (tryNumConversion(after) and before not in opDictionary and before != ')' and not
+                      tryNumConversion(before)):
+                    dividedExp[i+1:i+2] = [dividedExp[i+1], ')']
             else:
-                dividedExp[i:i + 1] = [0, '-']
+                dividedExp[i:i+1] = [0, '-']
+                i += 1
+        i += 1
     return dividedExp
 
 
@@ -168,7 +198,6 @@ def validate_input(expression: str) -> list:
                   .replace("\t", "")
                   .replace("\n", ""))
     dividedExp = list(expression)
-    print(dividedExp)
 
     i = 0
     while i < len(dividedExp):
@@ -217,4 +246,4 @@ def validate_input(expression: str) -> list:
     if openedExpression > 0:
         raise SyntaxError("Syntax error: Unmatched opening parenthesis.")
 
-    return convertMinusesInExp(dividedExp)
+    return dividedExp
