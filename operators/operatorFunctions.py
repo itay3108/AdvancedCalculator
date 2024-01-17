@@ -1,3 +1,6 @@
+import math
+
+
 def add(operand, operand2):
     """
     Addition method ( + ).
@@ -49,7 +52,15 @@ def power(operand, operand2):
     :param operand2: Another number
     :return: The first operand to the power of the second operand
     """
-    return operand ** operand2
+    if operand <= 0:
+        if operand == 0 and operand2 <= 0:
+            raise ArithmeticError("Power operation with base 0 requires a positive exponent.")
+        elif operand < 0 and (-1 < operand2 < 0 or 0 < operand2 < 1):
+            raise ArithmeticError("Power operation with negative base requires a non-fractional exponent.")
+    try:
+        return math.pow(operand, operand2)
+    except OverflowError:
+        return float('inf')
 
 
 def modulo(operand, operand2):
@@ -111,13 +122,21 @@ def factorial(operand):
     :return: All the whole numbers from 1 to operand multiplied
     :raises ArithmeticError if the number is negative or a fractional number
     """
-    if operand > 0:
-        if isinstance(operand, int):
-            result = 1
-            for i in range(2, operand + 1):
+    infReached = False
+    if operand >= 0:
+        try:
+            operand = int(operand)
+            result = 1.0
+            i = 2
+            while i < operand + 1 and not infReached:
                 result *= i
+                if result == float('inf'):
+                    infReached = True
+                i += 1
             return result
-        else:
+        except (ValueError, ArithmeticError):
+            if operand == float('inf'):
+                return float('inf')
             raise ArithmeticError("Math Error: Can't activate a factorial method on a fractional number.")
     else:
         raise ArithmeticError("Math Error: Can't activate a factorial method on a negative number.")
@@ -125,15 +144,17 @@ def factorial(operand):
 
 def digitAddition(operand):
     """
-    Digit addition method
+    Digit addition method ( # ).
     :param operand: A number
     :return: Sum of the digits in the number
     :raises ArithmeticError if the number is negative
     """
     if operand > 0:
+        if operand == float('inf'):
+            return operand
         dividedOp = str(operand)
         dividedOp.replace(".", "")
         dividedOp = list(dividedOp)
-        return sum(dividedOp) / len(dividedOp)
+        return sum(float(char) for char in dividedOp if char != '.')
     else:
         raise ArithmeticError("Math Error: Can't activate the digit addition on a negative number.")

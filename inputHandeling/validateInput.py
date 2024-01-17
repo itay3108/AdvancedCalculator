@@ -1,16 +1,7 @@
 from operators.OpInCalculator import opDictionary
 
 
-def isInt(num):
-    """
-    Checks if a num is an int.
-    :param num: The num to check.
-    :return: True if so and False otherwise.
-    """
-    return isinstance(num, int)
-
-
-def tryNumConversion(num: str):
+def tryNumConversion(num: str) -> bool:
     """
     Tries converting the string to a number
     :param num: The possible number's string
@@ -44,15 +35,6 @@ def closeExp(dividedExp: list, index: int):
     dividedExp[j-1:j] = [dividedExp[j-1], ')']
 
 
-def isFloat(num):
-    """
-    Checks if a num is a float.
-    :param num: The num to check.
-    :return: True if so and False otherwise.
-    """
-    return isinstance(num, float)
-
-
 def checkUnaryPostOp(dividedExp: list, index: int):
     """
     Checking the position of the post operand unary operators
@@ -63,9 +45,9 @@ def checkUnaryPostOp(dividedExp: list, index: int):
     """
     notValid = False
     if index != 0:
-        if index < len(dividedExp) - 1:
-            after = dividedExp[index-1]
-            if after != ')' and not (after in opDictionary and not opDictionary[after].isUnary()):
+        if index < len(dividedExp)-1:
+            after = dividedExp[index+1]
+            if after != ')' and not (after in opDictionary and opDictionary[after].getPosition() != -1):
                 notValid = True
     else:
         notValid = True
@@ -84,8 +66,8 @@ def checkUnaryPreOp(dividedExp: list, index: int):
     """
     notValid = False
     if 0 < index < len(dividedExp) - 1:
+        before = dividedExp[index - 1]
         after = dividedExp[index + 1]
-        before = dividedExp[index-1]
         if after != '(' and not tryNumConversion(after) and after != '-':
             notValid = True
         if not (before in opDictionary and not opDictionary[before].isUnary()):
@@ -115,7 +97,7 @@ def checkBinaryOp(dividedExp: list, index: int):
     if dividedExp[index] == '-':
         if index == 0:
             if len(dividedExp) - 1 > 0:
-                if dividedExp[index + 1] in opDictionary and opDictionary[dividedExp[index + 1]] != '-':
+                if dividedExp[index + 1] in opDictionary and dividedExp[index + 1] != '-':
                     raise SyntaxError("Syntax Error: '-' operator can't be followed by an operator excluding '-'")
         elif index == len(dividedExp) - 1:
             notValid = True
@@ -147,19 +129,19 @@ def convertMinusesInExp(dividedExp: list) -> list:
     :return: The divided expression changed if needed.
     """
     nonBinaryMinus = False
+    startingStreak = 0
     i = 0
     while i < len(dividedExp):
         if dividedExp[i] == '-':
-            if 0 < i < len(dividedExp)-1:
+            if len(dividedExp)-1 > i > 0 > startingStreak:
                 before = dividedExp[i - 1]
-
                 if before in opDictionary and opDictionary[before].getPosition() != 1:
                     dividedExp[i:i + 1] = ['(', 0, '-']
                     nonBinaryMinus = True
                     i += 2
 
                 elif before == '(':
-                    dividedExp[i:i + 1] = [0, '-']
+                    dividedExp[i:i + 1] = ['?']
                     i += 1
                 after = dividedExp[i + 1]
 
@@ -176,12 +158,17 @@ def convertMinusesInExp(dividedExp: list) -> list:
                             parenthesisAdded = True
                         j += 1
                     nonBinaryMinus = False
-                elif (tryNumConversion(after) and before not in opDictionary and before != ')' and not
-                      tryNumConversion(before)):
-                    dividedExp[i+1:i+2] = [dividedExp[i+1], ')']
             else:
-                dividedExp[i:i+1] = [0, '-']
-                i += 1
+                startingStreak += 1
+        else:
+            if dividedExp[startingStreak-1] == '-':
+                if startingStreak % 2 == 0:
+                    dividedExp[i-startingStreak:i] = []
+                    i -= startingStreak
+                elif startingStreak != -1 and startingStreak % 2 == 1:
+                    dividedExp[i-startingStreak:i] = ['?']
+                    startingStreak -= startingStreak-1
+            startingStreak = -1
         i += 1
     return dividedExp
 

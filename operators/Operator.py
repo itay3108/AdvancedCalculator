@@ -1,6 +1,6 @@
 class Operator:
 
-    def __init__(self, symbol: str, priority: int, position: int, unary: bool, method) -> None:
+    def __init__(self, symbol: str, priority: int, position: float, unary: bool, description: str, method) -> None:
         """
         Create an operator object
         :param symbol: The symbol used to represent the operator.
@@ -11,12 +11,14 @@ class Operator:
         0 - in between
         1 - right
         :param unary: A flag for stating if the operator is unary.
-        :param method: a reference to the method related to the operator
+        :param description: The description of the operator.
+        :param method: a reference to the method related to the operator.
         """
         self.__symbol = symbol
         self.__priority = priority
         self.__position = position
         self.__unary = unary
+        self.__description = description
         self.__method = method
 
     def getSymbol(self) -> str:
@@ -33,7 +35,7 @@ class Operator:
         """
         return self.__priority
 
-    def getPosition(self) -> int:
+    def getPosition(self) -> float:
         """
         Get the operator's position
         :return: The operator's position
@@ -46,6 +48,13 @@ class Operator:
         :return: True if unary and False otherwise
         """
         return self.__unary
+
+    def getDescription(self) -> str:
+        """
+        Get the operator's description
+        :return: The operator's description
+        """
+        return self.__description
 
     def getMethod(self):
         """
