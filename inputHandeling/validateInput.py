@@ -143,7 +143,6 @@ def convertMinusesInExp(dividedExp: list) -> list:
                 elif before == '(':
                     dividedExp[i:i + 1] = ['?']
                     i += 1
-                after = dividedExp[i + 1]
 
                 if nonBinaryMinus:
                     parenthesisAdded = False
@@ -204,7 +203,7 @@ def validate_input(expression: str) -> list:
             i = i - len(operand) + 1
 
         else:
-            if dividedExp[i] in opDictionary:
+            if dividedExp[i] in opDictionary and dividedExp[i] != '?':
                 op = opDictionary[dividedExp[i]]
                 if (op.getPosition() == 1 and i == 0) or (op.getPosition() == -1 and i == len(dividedExp) - 1):
                     raise SyntaxError(f"Syntax error: Operator '{dividedExp[i]}' not in a legal position.")

@@ -36,4 +36,3 @@ def Calculator():
         else:
             print("please enter a valid option")
             menuInput = input("please enter the action wanted: ")
-
