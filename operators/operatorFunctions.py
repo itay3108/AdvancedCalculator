@@ -156,6 +156,12 @@ def digitAddition(operand):
             raise ArithmeticError("Math Error: Can't activate the digit addition on an infinite number.")
         dividedOp = str(operand)
         dividedOp = list(dividedOp)
-        return sum(float(char) for char in dividedOp if char.isnumeric())
+        result = 0
+        i = 0
+        while i < len(dividedOp) and dividedOp[i] != 'e':
+            if dividedOp[i].isnumeric():
+                result += float(dividedOp[i])
+            i += 1
+        return result
     else:
         raise ArithmeticError("Math Error: Can't activate the digit addition on a negative number.")
