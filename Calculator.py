@@ -2,6 +2,12 @@ from inputHandeling import validateInput, evalExpression
 from operators.OpInCalculator import opDictionary
 
 
+def calculate(expressionStr: str):
+    expression = validateInput.validate_input(expressionStr)
+    expression = validateInput.convertMinusesInExp(expression)
+    return evalExpression.evalExpression(expression)
+
+
 def Calculator():
     """
     The main function of the calculator called from main.
@@ -18,8 +24,7 @@ def Calculator():
         if menuInput == 'c':
             try:
                 string = input("\nplease enter an expression to calculate: ")
-                expression = validateInput.convertMinusesInExp(validateInput.validate_input(string))
-                print(evalExpression.evalExpression(expression), "\n")
+                print(calculate(string), "\n")
             except EOFError:
                 print("The program was ended by the user.")
                 programEnded = True
@@ -27,7 +32,7 @@ def Calculator():
                 print(e)
         elif menuInput == 'h':
             for op in opDictionary:
-                if op != '?':
+                if op != '?':  # not printing the unary minus
                     print(f"{op} - {opDictionary[op].getDescription()}")
             menuInput = input("please enter the action wanted: ")
         elif menuInput == 'q':

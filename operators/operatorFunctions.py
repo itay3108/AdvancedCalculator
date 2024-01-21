@@ -125,15 +125,17 @@ def factorial(operand):
     infReached = False
     if operand >= 0:
         try:
-            operand = int(operand)
-            result = 1.0
-            i = 2
-            while i < operand + 1 and not infReached:
-                result *= i
-                if result == float('inf'):
-                    infReached = True
-                i += 1
-            return result
+            if operand % 1 == 0:
+                result = 1.0
+                i = 2
+                while not infReached and i < operand + 1:
+                    result *= i
+                    if result == float('inf'):
+                        infReached = True
+                    i += 1
+                return result
+            else:
+                raise ArithmeticError("Math Error: Can't activate a factorial method on a fractional number.")
         except (ValueError, ArithmeticError):
             if operand == float('inf'):
                 return float('inf')
@@ -147,14 +149,13 @@ def digitAddition(operand):
     Digit addition method ( # ).
     :param operand: A number
     :return: Sum of the digits in the number
-    :raises ArithmeticError if the number is negative
+    :raises ArithmeticError if the number is negative or inf
     """
-    if operand > 0:
+    if operand >= 0:
         if operand == float('inf'):
-            return operand
+            raise ArithmeticError("Math Error: Can't activate the digit addition on an infinite number.")
         dividedOp = str(operand)
-        dividedOp.replace(".", "")
         dividedOp = list(dividedOp)
-        return sum(float(char) for char in dividedOp if char != '.')
+        return sum(float(char) for char in dividedOp if char.isnumeric())
     else:
         raise ArithmeticError("Math Error: Can't activate the digit addition on a negative number.")

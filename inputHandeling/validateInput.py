@@ -70,7 +70,7 @@ def checkUnaryPreOp(dividedExp: list, index: int):
         after = dividedExp[index + 1]
         if after != '(' and not tryNumConversion(after) and after != '-':
             notValid = True
-        if not (before in opDictionary and not opDictionary[before].isUnary()):
+        if not (before in opDictionary and not opDictionary[before].isUnary()) and before != '(':
             raise SyntaxError(f"Syntax error: Pre operand unary operator '{dividedExp[index]}' must be preceded by a "
                               f"non-unary operator.")
     elif index == 0:
@@ -103,9 +103,15 @@ def checkBinaryOp(dividedExp: list, index: int):
             notValid = True
         else:
             after = dividedExp[index + 1]
-            if after != '-' and after != '(' and not tryNumConversion(after) and after in opDictionary:
-                raise SyntaxError("Syntax Error: '-' operator must be followed by a number or closing parenthesis or "
-                                  "another '-' operator")
+            before = dividedExp[index - 1]
+            if after != '-' and after != '(' and not tryNumConversion(after):
+                if after in opDictionary and opDictionary[after].getPosition() == -1:
+                    if before in opDictionary and opDictionary[before].getPosition() != 1:
+                        raise SyntaxError("Syntax Error: '-' cannot be preceded by a non-post unary operator and "
+                                          "followed by a non-post unary operator except '-' operator")
+                else:
+                    raise SyntaxError("Syntax Error: '-' operator can't be followed by a non-pre unary operator")
+
     elif 0 < index < len(dividedExp) - 1:
         before = dividedExp[index - 1]
         after = dividedExp[index + 1]
@@ -186,50 +192,57 @@ def validate_input(expression: str) -> list:
     dividedExp = list(expression)
 
     i = 0
-    while i < len(dividedExp):
-        operand = ""
-        while i < len(dividedExp) and (dividedExp[i].isdigit() or (dividedExp[i] == '.')):
-            operand += dividedExp[i]
-            i += 1
+    if len(dividedExp) > 0:
+        while i < len(dividedExp):
+            operand = ""
+            while i < len(dividedExp) and (dividedExp[i].isdigit() or (dividedExp[i] == '.')):
+                operand += dividedExp[i]
+                i += 1
 
-        if operand:
-            try:
-                dividedExp[i - len(operand):i] = [int(operand)]
-            except ValueError:
+            if operand:
                 try:
-                    dividedExp[i - len(operand):i] = [float(operand)]
+                    dividedExp[i - len(operand):i] = [int(operand)]
                 except ValueError:
-                    raise SyntaxError(f"Syntax error: Illegal operand: '{operand}'")
-            i = i - len(operand) + 1
+                    try:
+                        dividedExp[i - len(operand):i] = [float(operand)]
+                    except ValueError:
+                        raise SyntaxError(f"Syntax error: Illegal operand: '{operand}'")
+                i = i - len(operand) + 1
 
-        else:
-            if dividedExp[i] in opDictionary and dividedExp[i] != '?':
-                op = opDictionary[dividedExp[i]]
-                if (op.getPosition() == 1 and i == 0) or (op.getPosition() == -1 and i == len(dividedExp) - 1):
-                    raise SyntaxError(f"Syntax error: Operator '{dividedExp[i]}' not in a legal position.")
-                if op.getPosition() == 1:
-                    checkUnaryPostOp(dividedExp, i)
-                elif op.getPosition() == -1:
-                    checkUnaryPreOp(dividedExp, i)
-                else:
-                    checkBinaryOp(dividedExp, i)
-
-            elif dividedExp[i] == '(':
-                openedExpression += 1
-            elif dividedExp[i] == ')':
-                if openedExpression <= 0:
-                    raise SyntaxError("Syntax error: Unmatched closing parenthesis.")
-                else:
-                    if (dividedExp[i - 1] == '(' or
-                            (dividedExp[i - 1] in opDictionary and opDictionary[dividedExp[i - 1]].getPosition() <= 0)):
-                        raise SyntaxError("Syntax error: there is no expression between the parentheses.")
-                    else:
-                        openedExpression -= 1
             else:
-                raise SyntaxError(f"Syntax error: Unknown operator '{dividedExp[i]}'.")
-            i += 1
+                if dividedExp[i] in opDictionary and dividedExp[i] != '?':
+                    op = opDictionary[dividedExp[i]]
+                    if (op.getPosition() == 1 and i == 0) or (op.getPosition() == -1 and i == len(dividedExp) - 1):
+                        raise SyntaxError(f"Syntax error: Operator '{dividedExp[i]}' not in a legal position.")
+                    if op.getPosition() == 1:
+                        checkUnaryPostOp(dividedExp, i)
+                    elif op.getPosition() == -1:
+                        checkUnaryPreOp(dividedExp, i)
+                    else:
+                        checkBinaryOp(dividedExp, i)
 
-    if openedExpression > 0:
-        raise SyntaxError("Syntax error: Unmatched opening parenthesis.")
+                elif dividedExp[i] == '(':
+                    if i > 0 and tryNumConversion(dividedExp[i-1]):
+                        raise SyntaxError("Syntax error: Illegal operand placement before an opening parenthesis.")
+                    openedExpression += 1
+                elif dividedExp[i] == ')':
+                    if openedExpression <= 0:
+                        raise SyntaxError("Syntax error: Unmatched closing parenthesis.")
+                    elif i < len(dividedExp)-1 and tryNumConversion(dividedExp[i+1]):
+                        raise SyntaxError("Syntax error: There shouldn't be a number after a closing parenthesis.")
+                    else:
+                        if (dividedExp[i - 1] == '(' or
+                                (dividedExp[i - 1] in opDictionary and opDictionary[dividedExp[i - 1]].getPosition() <= 0)):
+                            raise SyntaxError("Syntax error: There is no expression between the parentheses.")
+                        else:
+                            openedExpression -= 1
+                else:
+                    raise SyntaxError(f"Syntax error: Unknown operator '{dividedExp[i]}'.")
+                i += 1
 
-    return dividedExp
+        if openedExpression > 0:
+            raise SyntaxError("Syntax error: Unmatched opening parenthesis.")
+
+        return dividedExp
+    else:
+        raise SyntaxError("Syntax error: Empty expression.")
