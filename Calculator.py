@@ -3,6 +3,11 @@ from operators.OpInCalculator import opDictionary
 
 
 def calculate(expressionStr: str):
+    """
+    preforming all that is necessary for calculation and calculating
+    :param expressionStr: The expression to calculate
+    :return: The result of the calculation
+    """
     expression = validateInput.validate_input(expressionStr)
     expression = validateInput.convertMinusesInExp(expression)
     return evalExpression.evalExpression(expression)
